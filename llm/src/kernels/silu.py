@@ -2,6 +2,11 @@ import triton
 import torch
 import triton.language as tl
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../output")))
+import silu_cuda
+
 
 @triton.jit
 def silu_kernel(x_ptr, out_ptr, n, BLOCK_SIZE:tl.constexpr):
@@ -35,4 +40,6 @@ if __name__=="__main__":
 
     output_triton = silu(x)
     output_torch = torch.nn.functional.silu(x)
+    output_cuda = silu_cuda.silu(x)
     print(torch.allclose(output_triton,output_torch,atol=1e-7))
+    print(torch.allclose(output_cuda,output_torch,atol=1e-7))
