@@ -1,11 +1,7 @@
 import triton
 import torch
 import triton.language as tl
-
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../output")))
-import silu_cuda
+import torch.profiler as profiler
 
 
 @triton.jit
@@ -40,6 +36,12 @@ if __name__=="__main__":
 
     output_triton = silu(x)
     output_torch = torch.nn.functional.silu(x)
-    output_cuda = silu_cuda.silu(x)
+    with profiler.profile( activities=[profiler.ProfilerActivity.CPU, profiler.ProfilerActivity.CUDA],
+                           record_shapes=True, profile_memory=True, with_stack=True
+                             ) as prof:
+        for _ in range(10):
+            output_cuda = silu_cuda.silu(x)
+
+    print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
     print(torch.allclose(output_triton,output_torch,atol=1e-7))
     print(torch.allclose(output_cuda,output_torch,atol=1e-7))

@@ -19,8 +19,6 @@ main()
     pre_env
     rm -rf ${OUTPUT_PATH}/
 
-    cd ${KERNEL_PATH}
-
     python setup.py build_ext  --build-lib $OUTPUT_PATH
 
 }
